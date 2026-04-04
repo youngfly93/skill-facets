@@ -1,0 +1,379 @@
+# skills.yaml — vNext 权威 manifest
+# trigger + contract + tools + workflow 的单一事实源
+# SKILL.md 和 commands/*.md 仍然是人类可读文档
+
+schema_version: "1.0"
+
+skills:
+
+  ppt:
+    version: "1.0"
+    type: command
+    source: commands/ppt.md
+    description: "配合 pptx skill 制作精美PPT"
+    trigger:
+      keywords: [PPT, ppt, 幻灯片, 演示文稿, slides, presentation, 做PPT, 制作PPT]
+      file_patterns: ["*.pptx"]
+      negative_keywords: [excel, 表格, 打包, 交付]
+      priority: 10
+      hint: "使用 /ppt 制作精美PPT"
+    contract:
+      constraints:
+        - id: cn_font
+          type: font
+          rule: "中文字体 == 黑体(SimHei/Heiti SC)"
+          severity: hard_fail
+          checker: font_checker
+          params: {font_spec: "黑体（SimHei/Heiti SC）"}
+          repair_hint: "设置 font.name='SimHei' 或 'Heiti SC'"
+        - id: en_font
+          type: font
+          rule: "英文字体 == Times New Roman"
+          severity: hard_fail
+          checker: font_checker
+          params: {font_spec: "Times New Roman"}
+          repair_hint: "设置 font.name='Times New Roman'"
+        - id: img_aspect
+          type: visual
+          rule: "图片等比例缩放，不可拉伸变形"
+          severity: manual_review
+        - id: page_content
+          type: content
+          rule: "每页有描述性文字和结论，不纯列表堆砌"
+          severity: manual_review
+        - id: structure
+          type: structure
+          rule: "总分总结构：封面→主体→总结页"
+          severity: manual_review
+      aspirations:
+        - "配色舒服、专业、有层次感"
+        - "视觉丰富：背景色块、渐变、装饰线条、图标"
+        - "逻辑清晰：信息层级分明，重点突出"
+        - "版式多样：双栏、卡片、时间线等"
+        - "每页一个核心观点，信息密度适中"
+      freedoms:
+        - "具体配色方案（除非用户指定）"
+        - "背景样式（纯色/渐变/图案均可）"
+        - "装饰元素的选择和数量"
+        - "版式的具体实现方式"
+
+  sci-fig:
+    version: "1.0"
+    type: command
+    source: commands/sci-fig.md
+    description: "绘制SCI发表级别的可视化图表"
+    trigger:
+      keywords: [图表, 画图, 作图, figure, plot, 可视化, SCI图, 柱状图, 箱线图, 热图, 火山图, PCA, 散点图, barplot, boxplot, heatmap]
+      file_patterns: ["*.png", "*.pdf", "figures/"]
+      negative_keywords: [PPT, 报告, 打包]
+      priority: 10
+      hint: "使用 /sci-fig 绘制 SCI 发表级可视化图表"
+    contract:
+      constraints:
+        - id: bg_white
+          type: color
+          rule: "background == #FFFFFF"
+          severity: hard_fail
+          checker: color_checker
+          params: {expected_color: "#FFFFFF"}
+          repair_hint: "plt.figure(facecolor='white'); ax.set_facecolor('white')"
+        - id: no_gridlines
+          type: visual
+          rule: "不使用网格线"
+          severity: manual_review
+          repair_hint: "ax.grid(False)"
+        - id: min_dpi
+          type: dpi
+          rule: "dpi >= 300"
+          severity: hard_fail
+          checker: dpi_checker
+          params: {min_dpi: 300}
+          repair_hint: "plt.savefig(path, dpi=300)"
+        - id: axis_labels
+          type: content
+          rule: "坐标轴必须有标签和单位"
+          severity: manual_review
+        - id: output_format
+          type: format
+          rule: "ext in [.png, .pdf]"
+          severity: hard_fail
+          checker: format_checker
+          params: {allowed: [".png", ".pdf"]}
+          repair_hint: "plt.savefig('fig.png') 或 plt.savefig('fig.pdf')"
+      aspirations:
+        - "配色协调、可区分，适合色盲读者"
+        - "文字大小可读（缩放到期刊单栏宽度后仍清晰）"
+        - "图例完整且不遮挡数据"
+        - "统计标注规范（*, **, ***, ns）"
+        - "柱状图有误差线，箱线图显示离群值"
+      freedoms:
+        - "具体配色方案"
+        - "图表类型选择（根据数据特征）"
+        - "图表尺寸和宽高比"
+        - "字体选择（常用学术字体均可）"
+        - "是否使用子图（subplots）"
+
+  audit-fix:
+    version: "1.0"
+    type: command
+    source: commands/audit-fix.md
+    description: "对照 plan.md 执行穷尽式审计-修复循环"
+    trigger:
+      keywords: [审计, audit, 修复, fix, 检查质量, 核查, 复查]
+      file_patterns: ["plan.md"]
+      negative_keywords: [打包, 交付, deliver]
+      requires_files: ["plan.md"]
+      priority: 20
+      hint: "使用 /audit-fix 对照 plan.md 执行审计-修复循环"
+    contract:
+      constraints:
+        - id: max_rounds
+          type: workflow
+          rule: "最多执行 5 轮循环"
+          severity: hard_fail
+        - id: priority_order
+          type: workflow
+          rule: "每轮按 P0→P1→P2→P3 优先级顺序修复"
+          severity: hard_fail
+        - id: early_exit
+          type: workflow
+          rule: "P0/P1 全部清零且无新问题时提前终止"
+          severity: hard_fail
+        - id: round_header
+          type: output
+          rule: "每轮开始前输出当前轮次和剩余问题数"
+          severity: soft_warn
+        - id: immediate_fix
+          type: workflow
+          rule: "审计后立即修复，不只做计划"
+          severity: hard_fail
+        - id: git_suggest
+          type: workflow
+          rule: "每轮修复后建议提交"
+          severity: soft_warn
+      aspirations:
+        - "穷尽式覆盖：6 个审计维度全部检查"
+        - "追溯源头：数据不一致时追溯到原始文件修正"
+        - "高效迭代：每轮尽可能修复多个问题"
+        - "修复不引入新问题：每轮重新审计验证"
+      freedoms:
+        - "具体修复方案（重跑脚本/修改参数/重新生成图表）"
+        - "审计维度的检查顺序"
+        - "P2/P3 问题是否在本轮修复或推迟"
+
+  bio-report:
+    version: "1.0"
+    type: command
+    source: commands/bio-report.md
+    description: "生成中文生信分析 Word 交付报告"
+    trigger:
+      keywords: [报告, report, 交付报告, Word报告, 分析报告, 出报告, 写报告]
+      file_patterns: ["*.docx", "plan.md"]
+      negative_keywords: [PPT, 幻灯片, 打包]
+      priority: 10
+      hint: "使用 /bio-report 生成中文生信分析 Word 交付报告"
+    contract:
+      constraints:
+        - id: cn_body_font
+          type: font
+          rule: "中文正文 == 宋体(SimSun) 12pt"
+          severity: hard_fail
+          checker: font_checker
+          params: {font_spec: "宋体（SimSun）"}
+          repair_hint: "run.font.name='SimSun'; run.font.size=Pt(12)"
+        - id: en_font
+          type: font
+          rule: "英文/数字 == Times New Roman 12pt"
+          severity: hard_fail
+          checker: font_checker
+          params: {font_spec: "Times New Roman"}
+        - id: h1_font
+          type: font
+          rule: "一级标题 == 黑体 16pt 加粗"
+          severity: hard_fail
+          checker: font_checker
+          params: {font_spec: "黑体（SimHei）"}
+        - id: h2_font
+          type: font
+          rule: "二级标题 == 黑体 14pt 加粗"
+          severity: hard_fail
+          checker: font_checker
+          params: {font_spec: "黑体"}
+        - id: h3_font
+          type: font
+          rule: "三级标题 == 黑体 12pt 加粗"
+          severity: hard_fail
+          checker: font_checker
+          params: {font_spec: "黑体"}
+        - id: line_spacing
+          type: layout
+          rule: "行距 == 1.5 倍"
+          severity: hard_fail
+        - id: margins
+          type: layout
+          rule: "页边距 上下2.54cm 左右3.18cm"
+          severity: manual_review
+        - id: fig_numbering
+          type: numbering
+          rule: "图表编号连续且与正文引用一致"
+          severity: hard_fail
+          checker: content_checker
+          repair_hint: "重新编号图表引用"
+        - id: img_exists
+          type: content
+          rule: "嵌入图片前必须验证路径存在"
+          severity: hard_fail
+        - id: no_ai_talk
+          type: content
+          rule: "避免 AI 套话"
+          severity: soft_warn
+        - id: no_markdown
+          type: content
+          rule: "不得有 Markdown 标记残留"
+          severity: hard_fail
+          checker: content_checker
+          repair_hint: "移除 **, ##, `, - [ ] 等标记"
+      aspirations:
+        - "图表与数据严格对应，可追溯"
+        - "XML 完整性：生成后解压验证"
+        - "图片完整性：word/media/ 数量与引用一致"
+        - "表格使用三线表风格"
+        - "报告结构从 plan.md 自然组织"
+        - "图表居中，标题格式统一"
+      freedoms:
+        - "章节划分方式"
+        - "讨论部分的深度和角度"
+        - "补充内容的取舍"
+        - "PDF 转图片时 _page1/_page2 选择"
+        - "图片格式优先级"
+
+  validate:
+    version: "1.0"
+    type: command
+    source: commands/validate.md
+    description: "验证文件是否满足约束"
+    trigger:
+      keywords: [验证, validate, 检查约束, constraint]
+      priority: 5
+      hint: "使用 /validate <skill名> [目标目录]"
+
+  deliver-v4:
+    version: "1.0"
+    type: skill
+    source: skills/deliver-v4/SKILL.md
+    description: "一键交付打包全流程"
+    trigger:
+      keywords: [交付, 打包, deliver, 发给客户, 出包, 发包]
+      file_patterns: ["delivery/", "plan.md"]
+      negative_keywords: [画图, 报告, 审计]
+      requires_files: ["plan.md"]
+      priority: 20
+      hint: "使用 /deliver-v4 执行一键交付打包"
+    contract:
+      constraints:
+        - id: sequential_steps
+          type: workflow
+          rule: "步骤 1→7 顺序执行不可跳步"
+          severity: hard_fail
+        - id: gate_audit
+          type: workflow
+          rule: "步骤1 有 P0/P1 → 中止打包"
+          severity: hard_fail
+        - id: use_tool_facet
+          type: workflow
+          rule: "ZIP/AI扫描必须调用 Tool Facet 脚本"
+          severity: hard_fail
+        - id: exclude_files
+          type: content
+          rule: "排除 .DS_Store, __MACOSX, .git, .Rhistory, .RData, Thumbs.db"
+          severity: hard_fail
+        - id: require_plan
+          type: prerequisite
+          rule: "必须有 plan.md 才能启动"
+          severity: hard_fail
+        - id: zip_naming
+          type: format
+          rule: "ZIP文件名: 项目名_交付_YYYYMMDD.zip"
+          severity: hard_fail
+      aspirations:
+        - "AI 痕迹彻底清除"
+        - "Windows 兼容性"
+        - "交付物结构规范"
+        - "Word 文档完整性经过验证"
+      freedoms:
+        - "覆盖还是增量（询问用户）"
+        - "P2/P3 问题的处理方式"
+        - "05_分析代码/ 是否包含"
+    tools:
+      - name: zip_pack
+        script: scripts/zip_pack.py
+        commands:
+          pack: {inputs: {delivery_dir: path, project_name: string}, outputs: {zip_path: path}, exit_codes: {0: success, 1: error}}
+          verify: {inputs: {zip_path: path}, outputs: {crc_ok: bool, file_count: int, total_size_mb: float}, exit_codes: {0: success}}
+          checksum: {inputs: {delivery_dir: path}, outputs: {checksum_path: path}, exit_codes: {0: success}}
+      - name: ai_trace_scan
+        script: scripts/ai_trace_scan.py
+        commands:
+          scan: {inputs: {directory: path}, outputs: {issues: list}, exit_codes: {0: clean, 1: found}}
+          clean: {inputs: {directory: path}, outputs: {cleaned: list}, exit_codes: {0: success}}
+    workflow:
+      states: [init, audit, collect, scan, verify_doc, checksum, pack, verify_zip, done]
+      transitions:
+        init: {next: audit, condition: "plan.md exists"}
+        audit: {next: collect, condition: "P0==0 AND P1==0", fail: abort}
+        collect: {next: scan}
+        scan: {next: verify_doc, auto_retry: true}
+        verify_doc: {next: checksum}
+        checksum: {next: pack}
+        pack: {next: verify_zip}
+        verify_zip: {next: done, condition: "crc_ok == true"}
+
+  # === 仅 trigger 的外部 skill/command ===
+
+  fig-review:
+    version: "1.0"
+    type: command
+    trigger:
+      keywords: [审查图表, 检查图表, review figures, 图表审查]
+      file_patterns: ["figures/", "*.png"]
+      negative_keywords: [画图, 作图, 生成]
+      priority: 20
+      hint: "使用 /fig-review 批量审查图表"
+
+  ai-clean:
+    version: "1.0"
+    type: command
+    trigger:
+      keywords: [AI痕迹, 清除痕迹, ai-clean, 去AI, 痕迹扫描]
+      file_patterns: ["*.docx", "delivery/"]
+      negative_keywords: [画图, 报告]
+      priority: 20
+      hint: "使用 /ai-clean 扫描清除 AI 痕迹"
+
+  transfer:
+    version: "1.0"
+    type: command
+    trigger:
+      keywords: [传输, 传文件, transfer, 发到Windows, tailscale]
+      negative_keywords: [打包, 交付]
+      priority: 30
+      hint: "使用 /transfer 通过 Tailscale 传输文件"
+
+  project-init:
+    version: "1.0"
+    type: command
+    trigger:
+      keywords: [新项目, 初始化, 脚手架, scaffold, 建项目]
+      negative_keywords: [打包, 交付, 报告]
+      priority: 30
+      hint: "使用 /project-init 生成项目脚手架"
+
+  bio-roundtable:
+    version: "1.0"
+    type: skill
+    trigger:
+      keywords: [圆桌, roundtable, 新见解, 新假说, 验证设计]
+      file_patterns: ["results/", "plan.md"]
+      negative_keywords: [画图, 报告, 打包]
+      priority: 20
+      hint: "使用 /bio-roundtable 从分析结果中产出新假说"
