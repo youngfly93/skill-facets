@@ -21,12 +21,17 @@ def _numbering(params, files):
         try:
             text = _docx_text(f)
             for label, pat in [("图", r'图\s*(\d+)'), ("表", r'表\s*(\d+)')]:
-                nums = sorted(set(int(m) for m in re.findall(pat, text)))
+                matches = [int(m) for m in re.findall(pat, text)]
+                nums = sorted(set(matches))
                 if nums:
                     expected = list(range(1, max(nums) + 1))
                     missing = set(expected) - set(nums)
                     if missing:
                         violations.append({"file": f, "issue": f"{label}编号缺: {sorted(missing)}"})
+                    counts = {n: matches.count(n) for n in nums}
+                    underreferenced = sorted(n for n, count in counts.items() if count < 2)
+                    if underreferenced:
+                        violations.append({"file": f, "issue": f"{label}引用/标题可能不一致，出现次数不足 2: {underreferenced}"})
         except Exception:
             pass
     return {"passed": len(violations) == 0, "check_type": "numbering",
@@ -55,7 +60,12 @@ def _docx_text(fpath):
     with zipfile.ZipFile(fpath, 'r') as z:
         if 'word/document.xml' in z.namelist():
             xml = z.read('word/document.xml').decode('utf-8', errors='ignore')
-            return ''.join(re.findall(r'<w:t[^>]*>([^<]+)</w:t>', xml))
+            paragraphs = []
+            for block in re.findall(r'<w:p\b[\s\S]*?</w:p>', xml):
+                texts = re.findall(r'<w:t[^>]*>([^<]+)</w:t>', block)
+                if texts:
+                    paragraphs.append(''.join(texts))
+            return '\n'.join(paragraphs)
     return ""
 
 

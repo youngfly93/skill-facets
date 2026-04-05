@@ -14,8 +14,9 @@ _HOOK_DIR = os.path.dirname(os.path.abspath(__file__))
 _CLAUDE_DIR = os.path.dirname(_HOOK_DIR)
 sys.path.insert(0, os.path.join(_CLAUDE_DIR, "scripts"))
 
-from manifest import get_all_triggers, load_manifest
+from manifest import ManifestLoadError, get_all_triggers, load_manifest
 from logger import log_event
+from runtime_profile import RuntimeProfileError, load_runtime_profile
 
 
 def match_skill(name, defn, prompt, cwd):
@@ -74,11 +75,21 @@ def main():
         return
 
     cwd = data.get("cwd", os.getcwd())
-    triggers = get_all_triggers(cwd)
-    if not triggers:
+    try:
+        profile = load_runtime_profile(cwd=cwd)
+        allow_legacy = profile.get("allow_legacy_trigger_manifest", False)
+        triggers = get_all_triggers(cwd=cwd, search_paths=[cwd], allow_legacy=allow_legacy)
+        manifest_meta = load_manifest(cwd=cwd, search_paths=[cwd], allow_legacy=allow_legacy)
+    except (ManifestLoadError, RuntimeProfileError) as exc:
+        log_event({
+            "type": "route_error",
+            "cwd": cwd,
+            "error": str(exc),
+        })
         return
 
-    manifest_meta = load_manifest(cwd)
+    if not triggers:
+        return
     manifest_source = manifest_meta.get("_format", "unknown")
 
     matches = []
@@ -87,22 +98,32 @@ def main():
         if r:
             matches.append(r)
 
-    # 日志：无论是否匹配都记录
+    if not matches:
+        log_event({
+            "type": "route",
+            "prompt_len": len(prompt),
+            "prompt_hash": hashlib.md5(prompt.encode()).hexdigest()[:8],
+            "cwd": cwd,
+            "matches": [],
+            "top_pick": None,
+            "manifest_source": manifest_source,
+            "profile": profile["name"],
+        })
+        return
+
+    matches.sort(key=lambda m: (-m["score"], m["priority"]))
+    top = matches[:2]
+
     log_event({
         "type": "route",
         "prompt_len": len(prompt),
         "prompt_hash": hashlib.md5(prompt.encode()).hexdigest()[:8],
         "cwd": cwd,
         "matches": [{"name": m["name"], "score": m["score"], "dims": m["dims"]} for m in matches],
-        "top_pick": matches[0]["name"] if matches else None,
+        "top_pick": top[0]["name"],
         "manifest_source": manifest_source,
+        "profile": profile["name"],
     })
-
-    if not matches:
-        return
-
-    matches.sort(key=lambda m: (-m["score"], m["priority"]))
-    top = matches[:2]
 
     lines = ["[skill-router] 可能相关的 skill:"]
     for m in top:

@@ -2,7 +2,7 @@
 # trigger + contract + tools + workflow 的单一事实源
 # SKILL.md 和 commands/*.md 仍然是人类可读文档
 
-schema_version: "1.0"
+schema_version: "1.1"
 
 skills:
 
@@ -23,6 +23,8 @@ skills:
           type: font
           rule: "中文字体 == 黑体(SimHei/Heiti SC)"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: font_checker
           params: {font_spec: "黑体（SimHei/Heiti SC）"}
           repair_hint: "设置 font.name='SimHei' 或 'Heiti SC'"
@@ -30,21 +32,39 @@ skills:
           type: font
           rule: "英文字体 == Times New Roman"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: font_checker
           params: {font_spec: "Times New Roman"}
           repair_hint: "设置 font.name='Times New Roman'"
         - id: img_aspect
           type: visual
           rule: "图片等比例缩放，不可拉伸变形"
-          severity: manual_review
+          severity: hard_fail
+          enforcement: machine
+          stability: experimental
+          check_type: image_aspect_ratio
+          checker: ppt_checker
+          params: {tolerance: 0.03}
         - id: page_content
           type: content
           rule: "每页有描述性文字和结论，不纯列表堆砌"
-          severity: manual_review
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+          check_type: pure_bullet_page
+          checker: ppt_checker
+          params: {bullet_ratio: 0.8, min_paragraphs: 3}
         - id: structure
           type: structure
           rule: "总分总结构：封面→主体→总结页"
-          severity: manual_review
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+          check_type: slide_structure
+          checker: ppt_checker
+          params:
+            summary_keywords: ["总结", "Summary", "结论", "Takeaway", "Q&A", "谢谢"]
       aspirations:
         - "配色舒服、专业、有层次感"
         - "视觉丰富：背景色块、渐变、装饰线条、图标"
@@ -74,32 +94,54 @@ skills:
           type: color
           rule: "background == #FFFFFF"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: color_checker
           params: {expected_color: "#FFFFFF"}
           repair_hint: "plt.figure(facecolor='white'); ax.set_facecolor('white')"
         - id: no_gridlines
           type: visual
           rule: "不使用网格线"
-          severity: manual_review
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+          check_type: no_gridlines
+          checker: figure_checker
           repair_hint: "ax.grid(False)"
         - id: min_dpi
           type: dpi
           rule: "dpi >= 300"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: dpi_checker
           params: {min_dpi: 300}
           repair_hint: "plt.savefig(path, dpi=300)"
         - id: axis_labels
           type: content
           rule: "坐标轴必须有标签和单位"
-          severity: manual_review
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+          check_type: axis_labels
+          checker: figure_checker
         - id: output_format
           type: format
           rule: "ext in [.png, .pdf]"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: format_checker
           params: {allowed: [".png", ".pdf"]}
           repair_hint: "plt.savefig('fig.png') 或 plt.savefig('fig.pdf')"
+        - id: legend_present
+          type: visual
+          rule: "图例完整且可见"
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+          check_type: legend_present
+          checker: figure_checker
       aspirations:
         - "配色协调、可区分，适合色盲读者"
         - "文字大小可读（缩放到期刊单栏宽度后仍清晰）"
@@ -130,27 +172,39 @@ skills:
         - id: max_rounds
           type: workflow
           rule: "最多执行 5 轮循环"
-          severity: hard_fail
+          severity: manual_review
+          enforcement: human
+          stability: experimental
         - id: priority_order
           type: workflow
           rule: "每轮按 P0→P1→P2→P3 优先级顺序修复"
-          severity: hard_fail
+          severity: manual_review
+          enforcement: human
+          stability: experimental
         - id: early_exit
           type: workflow
           rule: "P0/P1 全部清零且无新问题时提前终止"
-          severity: hard_fail
+          severity: manual_review
+          enforcement: human
+          stability: experimental
         - id: round_header
           type: output
           rule: "每轮开始前输出当前轮次和剩余问题数"
           severity: soft_warn
+          enforcement: human
+          stability: experimental
         - id: immediate_fix
           type: workflow
           rule: "审计后立即修复，不只做计划"
-          severity: hard_fail
+          severity: manual_review
+          enforcement: human
+          stability: experimental
         - id: git_suggest
           type: workflow
           rule: "每轮修复后建议提交"
           severity: soft_warn
+          enforcement: human
+          stability: experimental
       aspirations:
         - "穷尽式覆盖：6 个审计维度全部检查"
         - "追溯源头：数据不一致时追溯到原始文件修正"
@@ -178,6 +232,8 @@ skills:
           type: font
           rule: "中文正文 == 宋体(SimSun) 12pt"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: font_checker
           params: {font_spec: "宋体（SimSun）"}
           repair_hint: "run.font.name='SimSun'; run.font.size=Pt(12)"
@@ -185,54 +241,90 @@ skills:
           type: font
           rule: "英文/数字 == Times New Roman 12pt"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: font_checker
           params: {font_spec: "Times New Roman"}
         - id: h1_font
           type: font
           rule: "一级标题 == 黑体 16pt 加粗"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: font_checker
           params: {font_spec: "黑体（SimHei）"}
         - id: h2_font
           type: font
           rule: "二级标题 == 黑体 14pt 加粗"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: font_checker
           params: {font_spec: "黑体"}
         - id: h3_font
           type: font
           rule: "三级标题 == 黑体 12pt 加粗"
           severity: hard_fail
+          enforcement: machine
+          stability: core
           checker: font_checker
           params: {font_spec: "黑体"}
         - id: line_spacing
           type: layout
           rule: "行距 == 1.5 倍"
-          severity: hard_fail
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+          check_type: line_spacing
+          checker: layout_checker
+          params: {spacing: 1.5, tolerance: 30}
         - id: margins
           type: layout
           rule: "页边距 上下2.54cm 左右3.18cm"
-          severity: manual_review
+          severity: hard_fail
+          enforcement: machine
+          stability: core
+          check_type: margins
+          checker: layout_checker
+          params: {top_twips: 1440, bottom_twips: 1440, left_twips: 1800, right_twips: 1800, tolerance: 40}
         - id: fig_numbering
           type: numbering
           rule: "图表编号连续且与正文引用一致"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          check_type: numbering
           checker: content_checker
           repair_hint: "重新编号图表引用"
         - id: img_exists
           type: content
           rule: "嵌入图片前必须验证路径存在"
-          severity: hard_fail
+          severity: manual_review
+          enforcement: human
+          stability: experimental
         - id: no_ai_talk
           type: content
           rule: "避免 AI 套话"
           severity: soft_warn
+          enforcement: human
+          stability: experimental
         - id: no_markdown
           type: content
           rule: "不得有 Markdown 标记残留"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          check_type: no_markdown
           checker: content_checker
           repair_hint: "移除 **, ##, `, - [ ] 等标记"
+        - id: heading_levels
+          type: structure
+          rule: "Heading1/2/3 样式层级清晰且字号匹配"
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+          check_type: heading_levels
+          checker: layout_checker
       aspirations:
         - "图表与数据严格对应，可追溯"
         - "XML 完整性：生成后解压验证"
@@ -275,26 +367,44 @@ skills:
           type: workflow
           rule: "步骤 1→7 顺序执行不可跳步"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          enforced_by: runtime
         - id: gate_audit
           type: workflow
           rule: "步骤1 有 P0/P1 → 中止打包"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          enforced_by: runtime
         - id: use_tool_facet
           type: workflow
           rule: "ZIP/AI扫描必须调用 Tool Facet 脚本"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          enforced_by: runtime
         - id: exclude_files
           type: content
           rule: "排除 .DS_Store, __MACOSX, .git, .Rhistory, .RData, Thumbs.db"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          enforced_by: runtime
         - id: require_plan
           type: prerequisite
           rule: "必须有 plan.md 才能启动"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          enforced_by: runtime
         - id: zip_naming
           type: format
           rule: "ZIP文件名: 项目名_交付_YYYYMMDD.zip"
           severity: hard_fail
+          enforcement: machine
+          stability: core
+          enforced_by: runtime
       aspirations:
         - "AI 痕迹彻底清除"
         - "Windows 兼容性"

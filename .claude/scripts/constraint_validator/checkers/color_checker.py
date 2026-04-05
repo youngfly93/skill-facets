@@ -24,7 +24,8 @@ def check(check_type, params, files):
                     violations.append({"file": f, "issue": f"背景色 {hex_c} 偏离 {expected}"})
                     break
         except ImportError:
-            pass
+            return {"passed": None, "check_type": check_type,
+                    "details": "Pillow 不可用", "violations": []}
         except Exception as e:
             violations.append({"file": f, "issue": str(e)})
 

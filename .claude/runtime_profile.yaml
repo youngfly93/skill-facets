@@ -1,0 +1,23 @@
+# runtime_profile.yaml — vNext Core / Experimental Extensions split
+
+schema_version: "1.0"
+
+# Keep the default surface area small and stable.
+active_profile: core
+
+profiles:
+  core:
+    description: "默认稳定配置：manifest + runner + machine/runtime 约束"
+    allow_legacy_parser: false
+    allow_legacy_trigger_manifest: false
+    include_stabilities: [core]
+    include_enforcements: [machine]
+    include_runtime_enforced: true
+
+  full:
+    description: "实验配置：在 core 之上启用 heuristic/human review 与 legacy parser"
+    allow_legacy_parser: true
+    allow_legacy_trigger_manifest: true
+    include_stabilities: [core, experimental]
+    include_enforcements: [machine, heuristic, human]
+    include_runtime_enforced: true
