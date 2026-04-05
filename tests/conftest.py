@@ -7,8 +7,11 @@ import pytest
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CLAUDE_DIR = os.path.join(PROJECT_ROOT, ".claude")
 SCRIPTS_DIR = os.path.join(CLAUDE_DIR, "scripts")
+FRAMEWORK_DIR = os.path.join(PROJECT_ROOT, "framework")
 
-# 让所有测试能 import .claude/scripts/ 下的模块
+# 让测试能 import 模块（优先 framework/，回退 .claude/scripts/）
+sys.path.insert(0, FRAMEWORK_DIR)
+sys.path.insert(0, os.path.join(FRAMEWORK_DIR, "constraint_validator"))
 sys.path.insert(0, SCRIPTS_DIR)
 sys.path.insert(0, os.path.join(SCRIPTS_DIR, "constraint_validator"))
 
@@ -30,12 +33,12 @@ def skills_yaml_path():
 
 @pytest.fixture
 def example_figures_dir():
-    return os.path.join(PROJECT_ROOT, "examples", "real_project", "figures")
+    return os.path.join(PROJECT_ROOT, "examples", "bioinformatics", "real_project", "figures")
 
 
 @pytest.fixture
 def example_reports_dir():
-    return os.path.join(PROJECT_ROOT, "examples", "real_project", "reports")
+    return os.path.join(PROJECT_ROOT, "examples", "bioinformatics", "real_project", "reports")
 
 
 @pytest.fixture(autouse=True)

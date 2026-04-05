@@ -1,0 +1,75 @@
+# Web Development domain skills
+schema_version: "1.1"
+
+skills:
+
+  component:
+    version: "1.0"
+    type: command
+    source: commands/component.md
+    description: "Create a React/TypeScript component"
+    trigger:
+      keywords: [component, React, frontend, TypeScript, tsx, 组件]
+      file_patterns: ["*.tsx", "*.jsx", "src/"]
+      negative_keywords: [backend, API, database]
+      priority: 10
+      hint: "Use /component to create a React component"
+    contract:
+      constraints:
+        - id: typescript
+          type: format
+          rule: "output must be .tsx"
+          severity: hard_fail
+          enforcement: machine
+          stability: core
+          checker: format_checker
+          params: {allowed: [".tsx"]}
+          repair_hint: "Rename file extension to .tsx"
+        - id: no_any
+          type: content
+          rule: "no `any` type annotations"
+          severity: soft_warn
+          enforcement: heuristic
+          stability: experimental
+      aspirations:
+        - "Clean component architecture (single responsibility)"
+        - "Proper TypeScript types (no implicit any)"
+        - "Accessible (ARIA attributes where needed)"
+      freedoms:
+        - "CSS approach (Tailwind, CSS modules, styled-components)"
+        - "State management method"
+        - "File organization"
+
+  api-endpoint:
+    version: "1.0"
+    type: command
+    source: commands/api-endpoint.md
+    description: "Scaffold a REST API endpoint"
+    trigger:
+      keywords: [API, endpoint, REST, route, handler]
+      file_patterns: ["*.ts", "src/api/", "routes/"]
+      negative_keywords: [frontend, component, UI]
+      priority: 10
+      hint: "Use /api-endpoint to scaffold an API route"
+    contract:
+      constraints:
+        - id: error_handling
+          type: content
+          rule: "must have try/catch error handling"
+          severity: hard_fail
+          enforcement: heuristic
+          stability: experimental
+        - id: input_validation
+          type: content
+          rule: "must validate input parameters"
+          severity: hard_fail
+          enforcement: heuristic
+          stability: experimental
+      aspirations:
+        - "Consistent error response format"
+        - "Request/response type definitions"
+        - "Proper HTTP status codes"
+      freedoms:
+        - "Framework choice (Express, Fastify, Hono)"
+        - "Validation library"
+        - "Database query approach"

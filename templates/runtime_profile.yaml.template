@@ -1,0 +1,22 @@
+# runtime_profile.yaml — Core vs Experimental split
+
+schema_version: "1.0"
+
+active_profile: core
+
+profiles:
+  core:
+    description: "Stable runtime: manifest + router + machine/runtime constraints only"
+    allow_legacy_parser: false
+    allow_legacy_trigger_manifest: false
+    include_stabilities: [core]
+    include_enforcements: [machine]
+    include_runtime_enforced: true
+
+  full:
+    description: "Experimental: adds heuristic/human review + legacy parser"
+    allow_legacy_parser: true
+    allow_legacy_trigger_manifest: true
+    include_stabilities: [core, experimental]
+    include_enforcements: [machine, heuristic, human]
+    include_runtime_enforced: true

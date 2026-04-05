@@ -1,0 +1,45 @@
+---
+name: my-skill
+description: >-
+  What this skill does.
+  Trigger conditions and exclusions.
+---
+
+# Skill Title
+
+## Tool Facet — Deterministic Operations
+
+### tool_name
+
+```bash
+# command
+python3 ${CLAUDE_SKILL_DIR}/scripts/tool_name.py command <arg>
+# → {"result": "..."}
+```
+
+---
+
+## Prompt Facet — Workflow Guidance
+
+### Boundary (CONSTRAINT)
+
+- Hard requirement 1
+- Hard requirement 2
+
+  #### Aspire within boundary (ASPIRATION)
+
+  All aspirations below must not violate the boundary above.
+
+  - Quality goal 1
+
+    ##### Decide freely (FREEDOM)
+
+    - Free choice 1
+
+### Steps
+
+**Step 1 — Initialize**
+Description of first step.
+
+**Step 2 — Execute**
+Description of second step.

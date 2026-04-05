@@ -1,0 +1,45 @@
+# skills.yaml — skill-facets manifest
+# Define your skills here: trigger + contract + tools + workflow
+# See examples/ for domain-specific samples
+
+schema_version: "1.1"
+
+skills:
+
+  # Example: a minimal skill with trigger only
+  # my-skill:
+  #   version: "1.0"
+  #   type: command
+  #   source: commands/my-skill.md
+  #   description: "What this skill does"
+  #   trigger:
+  #     keywords: [keyword1, keyword2]
+  #     negative_keywords: [exclude1]
+  #     priority: 10
+  #     hint: "Use /my-skill to do something"
+
+  # Example: a skill with contract (enables /validate)
+  # my-validated-skill:
+  #   version: "1.0"
+  #   type: command
+  #   source: commands/my-validated-skill.md
+  #   description: "What this skill does"
+  #   trigger:
+  #     keywords: [keyword1]
+  #     priority: 10
+  #     hint: "Use /my-validated-skill"
+  #   contract:
+  #     constraints:
+  #       - id: output_format
+  #         type: format
+  #         rule: "output must be .png"
+  #         severity: hard_fail
+  #         enforcement: machine
+  #         stability: core
+  #         checker: format_checker
+  #         params: {allowed: [".png"]}
+  #         repair_hint: "Save as .png instead"
+  #     aspirations:
+  #       - "High quality output"
+  #     freedoms:
+  #       - "Specific implementation approach"

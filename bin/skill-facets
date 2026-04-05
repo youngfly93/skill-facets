@@ -1,0 +1,166 @@
+#!/usr/bin/env python3
+"""
+skill-facets CLI — unified entry point for the framework.
+
+Usage:
+  skill-facets init [--example NAME]    Initialize .claude/ in current project
+  skill-facets compile [--all|NAME]     Compile skills.yaml → .md
+  skill-facets validate NAME [DIR]      Validate constraints
+  skill-facets doctor                   Check environment
+  skill-facets lint                     Lint manifest
+  skill-facets list                     List all defined skills
+"""
+import sys
+import os
+import subprocess
+import argparse
+
+
+def find_framework_dir():
+    """Find the skill-facets framework directory."""
+    # Check if we're running from the repo
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_dir = os.path.dirname(script_dir)
+    framework = os.path.join(repo_dir, "framework")
+    if os.path.isdir(framework):
+        return framework, repo_dir
+    # Check if framework is installed in .claude/scripts/
+    cwd_framework = os.path.join(os.getcwd(), ".claude", "scripts")
+    if os.path.isdir(cwd_framework):
+        return cwd_framework, os.getcwd()
+    return None, None
+
+
+def find_script(name, framework_dir, project_dir):
+    """Find a script in framework or .claude/scripts/."""
+    candidates = [
+        os.path.join(framework_dir, name),
+        os.path.join(project_dir, ".claude", "scripts", name),
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            return c
+    return None
+
+
+def cmd_init(args, repo_dir):
+    """Initialize skill-facets in current directory."""
+    install_sh = os.path.join(repo_dir, "install.sh")
+    if not os.path.exists(install_sh):
+        print("Error: install.sh not found", file=sys.stderr)
+        sys.exit(1)
+    cmd = ["bash", install_sh]
+    if args.example:
+        cmd += ["--example", args.example]
+    os.execvp("bash", cmd)
+
+
+def cmd_compile(args, framework_dir, project_dir):
+    script = find_script("skill_compile.py", framework_dir, project_dir)
+    if not script:
+        print("Error: skill_compile.py not found", file=sys.stderr)
+        sys.exit(1)
+    cmd = [sys.executable, script, "--cwd", project_dir]
+    if args.all:
+        cmd.append("--all")
+    elif args.name:
+        cmd.append(args.name)
+    else:
+        cmd.append("--list")
+    if args.write:
+        cmd.append("--write")
+    os.execvp(sys.executable, cmd)
+
+
+def cmd_validate(args, framework_dir, project_dir):
+    script = find_script(os.path.join("constraint_validator", "cli.py"), framework_dir, project_dir)
+    if not script:
+        print("Error: cli.py not found", file=sys.stderr)
+        sys.exit(1)
+    cmd = [sys.executable, script, args.name]
+    if args.target_dir:
+        cmd.append(args.target_dir)
+    os.execvp(sys.executable, cmd)
+
+
+def cmd_doctor(args, framework_dir, project_dir):
+    script = find_script("doctor.py", framework_dir, project_dir)
+    if not script:
+        print("Error: doctor.py not found", file=sys.stderr)
+        sys.exit(1)
+    os.execvp(sys.executable, [sys.executable, script])
+
+
+def cmd_lint(args, framework_dir, project_dir):
+    script = find_script("lint_manifest.py", framework_dir, project_dir)
+    if not script:
+        print("Error: lint_manifest.py not found", file=sys.stderr)
+        sys.exit(1)
+    cmd = [sys.executable, script, "--cwd", project_dir]
+    os.execvp(sys.executable, cmd)
+
+
+def cmd_list(args, framework_dir, project_dir):
+    script = find_script("skill_compile.py", framework_dir, project_dir)
+    if not script:
+        print("Error: skill_compile.py not found", file=sys.stderr)
+        sys.exit(1)
+    os.execvp(sys.executable, [sys.executable, script, "--list", "--cwd", project_dir])
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="skill-facets",
+        description="Universal skill enhancement framework for Claude Code",
+    )
+    sub = parser.add_subparsers(dest="command")
+
+    # init
+    p_init = sub.add_parser("init", help="Initialize .claude/ in current project")
+    p_init.add_argument("--example", help="Domain example to include (e.g., bioinformatics)")
+
+    # compile
+    p_compile = sub.add_parser("compile", help="Compile skills.yaml → .md")
+    p_compile.add_argument("name", nargs="?", help="Skill name to compile")
+    p_compile.add_argument("--all", action="store_true", help="Compile all skills")
+    p_compile.add_argument("--write", action="store_true", help="Write to files")
+
+    # validate
+    p_validate = sub.add_parser("validate", help="Validate constraints")
+    p_validate.add_argument("name", help="Skill name")
+    p_validate.add_argument("target_dir", nargs="?", default=".", help="Target directory")
+
+    # doctor
+    sub.add_parser("doctor", help="Check environment")
+
+    # lint
+    sub.add_parser("lint", help="Lint manifest")
+
+    # list
+    sub.add_parser("list", help="List all defined skills")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(0)
+
+    framework_dir, repo_dir = find_framework_dir()
+    if not framework_dir:
+        print("Error: Cannot find skill-facets framework", file=sys.stderr)
+        sys.exit(1)
+
+    project_dir = os.getcwd()
+
+    dispatch = {
+        "init": lambda: cmd_init(args, repo_dir),
+        "compile": lambda: cmd_compile(args, framework_dir, project_dir),
+        "validate": lambda: cmd_validate(args, framework_dir, project_dir),
+        "doctor": lambda: cmd_doctor(args, framework_dir, project_dir),
+        "lint": lambda: cmd_lint(args, framework_dir, project_dir),
+        "list": lambda: cmd_list(args, framework_dir, project_dir),
+    }
+    dispatch[args.command]()
+
+
+if __name__ == "__main__":
+    main()
