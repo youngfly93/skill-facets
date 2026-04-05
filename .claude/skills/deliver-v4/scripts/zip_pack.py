@@ -7,21 +7,30 @@ import sys
 import datetime
 import hashlib
 
-EXCLUDE = {'.DS_Store', '__MACOSX', '.git', '.Rhistory', '.RData', 'Thumbs.db'}
+EXCLUDE_NAMES = {'.DS_Store', '__MACOSX', '.git', '.Rhistory', '.RData', 'Thumbs.db'}
 
 def should_exclude(path: str) -> bool:
     parts = path.split(os.sep)
-    return any(p in EXCLUDE for p in parts)
+    for p in parts:
+        if p in EXCLUDE_NAMES:
+            return True
+        if p.startswith('._'):
+            return True
+        if p.endswith('.zip'):
+            return True
+    return False
 
 def pack(delivery_dir: str, project_name: str = "项目") -> str:
     """打包 delivery/ 为 Windows 兼容 ZIP，返回 ZIP 路径。"""
     date_str = datetime.datetime.now().strftime("%Y%m%d")
     zip_name = f"{project_name}_交付_{date_str}.zip"
-    zip_path = os.path.join(os.path.dirname(delivery_dir), zip_name)
+    # 打包到 delivery/ 的父目录，避免 ZIP 自身被递归包含
+    parent = os.path.dirname(os.path.abspath(delivery_dir.rstrip('/')))
+    zip_path = os.path.join(parent, zip_name)
 
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
         for root, dirs, files in os.walk(delivery_dir):
-            dirs[:] = [d for d in dirs if d not in EXCLUDE]
+            dirs[:] = [d for d in dirs if d not in EXCLUDE_NAMES and not d.startswith('._')]
             for f in files:
                 full = os.path.join(root, f)
                 arcname = os.path.relpath(full, os.path.dirname(delivery_dir))
@@ -49,8 +58,10 @@ def checksum(delivery_dir: str) -> str:
     out_path = os.path.join(os.path.dirname(delivery_dir), "delivery_md5.txt")
     lines = []
     for root, dirs, files in sorted(os.walk(delivery_dir)):
-        dirs.sort()
+        dirs[:] = sorted(d for d in dirs if d not in EXCLUDE_NAMES and not d.startswith('._'))
         for f in sorted(files):
+            if should_exclude(f):
+                continue
             full = os.path.join(root, f)
             rel = os.path.relpath(full, delivery_dir)
             md5 = hashlib.md5(open(full, 'rb').read()).hexdigest()
