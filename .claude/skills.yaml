@@ -487,3 +487,272 @@ skills:
       negative_keywords: [画图, 报告, 打包]
       priority: 20
       hint: "使用 /bio-roundtable 从分析结果中产出新假说"
+
+  # === Anthropic 官方 skill wrapper（不改原版，只加 trigger + 基础 contract）===
+
+  pptx:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/pptx/SKILL.md"
+    description: "Presentation creation, editing, and analysis"
+    trigger:
+      keywords: [pptx, 演示文稿, presentation, 编辑PPT, 修改PPT, 幻灯片编辑]
+      file_patterns: ["*.pptx"]
+      negative_keywords: [excel, word, pdf]
+      priority: 15
+      hint: "使用 pptx skill 创建/编辑演示文稿"
+    contract:
+      constraints:
+        - id: valid_pptx
+          type: format
+          rule: "输出必须是有效的 .pptx 文件"
+          severity: hard_fail
+          enforcement: machine
+          stability: core
+          checker: format_checker
+          params: {allowed: [".pptx"]}
+
+  docx:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/docx/SKILL.md"
+    description: "Document creation, editing, and analysis"
+    trigger:
+      keywords: [docx, Word文档, 文档编辑, document, 编辑Word]
+      file_patterns: ["*.docx"]
+      negative_keywords: [pptx, excel, pdf, 报告]
+      priority: 15
+      hint: "使用 docx skill 创建/编辑 Word 文档"
+    contract:
+      constraints:
+        - id: valid_docx
+          type: format
+          rule: "输出必须是有效的 .docx 文件"
+          severity: hard_fail
+          enforcement: machine
+          stability: core
+          checker: format_checker
+          params: {allowed: [".docx"]}
+
+  xlsx:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/xlsx/SKILL.md"
+    description: "Spreadsheet creation, editing, and analysis"
+    trigger:
+      keywords: [xlsx, excel, 表格, spreadsheet, 电子表格, csv转excel]
+      file_patterns: ["*.xlsx", "*.xlsm", "*.csv"]
+      negative_keywords: [pptx, word, pdf, 画图]
+      priority: 15
+      hint: "使用 xlsx skill 处理电子表格"
+    contract:
+      constraints:
+        - id: valid_xlsx
+          type: format
+          rule: "输出必须是有效的 .xlsx 文件"
+          severity: hard_fail
+          enforcement: machine
+          stability: core
+          checker: format_checker
+          params: {allowed: [".xlsx", ".xlsm"]}
+
+  pdf:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/pdf/SKILL.md"
+    description: "PDF manipulation toolkit"
+    trigger:
+      keywords: [pdf, PDF, 提取PDF, 合并PDF, PDF表单, 填写PDF]
+      file_patterns: ["*.pdf"]
+      negative_keywords: [pptx, word, excel]
+      priority: 15
+      hint: "使用 pdf skill 处理 PDF 文件"
+    contract:
+      constraints:
+        - id: valid_pdf
+          type: format
+          rule: "输出必须是有效的 .pdf 文件"
+          severity: hard_fail
+          enforcement: machine
+          stability: core
+          checker: format_checker
+          params: {allowed: [".pdf"]}
+
+  mermaid-visualizer:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/mermaid-visualizer/SKILL.md"
+    description: "Transform text into Mermaid diagrams"
+    trigger:
+      keywords: [mermaid, 流程图, flowchart, 架构图, 时序图, sequence diagram, 甘特图]
+      negative_keywords: [excalidraw, canvas]
+      priority: 15
+      hint: "使用 mermaid-visualizer 生成 Mermaid 图表"
+
+  excalidraw-diagram:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/excalidraw-diagram/SKILL.md"
+    description: "Generate Excalidraw diagrams"
+    trigger:
+      keywords: [excalidraw, 手绘图, 白板, 思维导图, mindmap]
+      negative_keywords: [mermaid, 流程图]
+      priority: 15
+      hint: "使用 excalidraw-diagram 生成 Excalidraw 图表"
+
+  doc-coauthoring:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/doc-coauthoring/SKILL.md"
+    description: "Structured workflow for co-authoring documentation"
+    trigger:
+      keywords: [写文档, 技术方案, proposal, RFC, 设计文档, spec, 协同写作]
+      negative_keywords: [报告, PPT, 代码]
+      priority: 15
+      hint: "使用 doc-coauthoring 协同撰写文档"
+
+  frontend-design:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/frontend-design/SKILL.md"
+    description: "Production-grade frontend interfaces"
+    trigger:
+      keywords: [前端, 网页, landing page, dashboard, React, 组件, UI设计, 界面]
+      file_patterns: ["*.html", "*.tsx", "*.jsx"]
+      negative_keywords: [后端, API, 数据库]
+      priority: 15
+      hint: "使用 frontend-design 创建前端界面"
+
+  canvas-design:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/canvas-design/SKILL.md"
+    description: "Create visual art in PNG/PDF"
+    trigger:
+      keywords: [海报, poster, 视觉设计, 平面设计, 艺术创作]
+      negative_keywords: [代码, 前端, 网页]
+      priority: 15
+      hint: "使用 canvas-design 创建视觉艺术作品"
+
+  algorithmic-art:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/algorithmic-art/SKILL.md"
+    description: "Algorithmic art using p5.js"
+    trigger:
+      keywords: [生成艺术, generative art, p5, 算法艺术, flow field, 粒子系统]
+      negative_keywords: [海报, 平面]
+      priority: 20
+      hint: "使用 algorithmic-art 创建算法生成艺术"
+
+  webapp-testing:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/webapp-testing/SKILL.md"
+    description: "Test web applications using Playwright"
+    trigger:
+      keywords: [测试网页, web test, playwright, 截图, 浏览器测试, UI测试]
+      priority: 20
+      hint: "使用 webapp-testing 测试 Web 应用"
+
+  notebooklm:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/notebooklm/SKILL.md"
+    description: "Google NotebookLM API"
+    trigger:
+      keywords: [notebooklm, notebook, podcast, 播客, 音频摘要]
+      priority: 20
+      hint: "使用 notebooklm 操作 Google NotebookLM"
+
+  mcp-builder:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/mcp-builder/SKILL.md"
+    description: "Build MCP servers"
+    trigger:
+      keywords: [MCP, mcp server, MCP服务器, tool server, FastMCP]
+      priority: 20
+      hint: "使用 mcp-builder 创建 MCP 服务器"
+
+  skill-creator:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/skill-creator/SKILL.md"
+    description: "Create new skills"
+    trigger:
+      keywords: [创建skill, 新skill, create skill, 写skill]
+      priority: 20
+      hint: "使用 skill-creator 创建新 skill"
+
+  habit-analyzer:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/habit-analyzer/SKILL.md"
+    description: "分析 Claude Code 使用习惯"
+    trigger:
+      keywords: [使用习惯, 高频输入, 工作流分析, 习惯分析, 常用命令]
+      priority: 25
+      hint: "使用 habit-analyzer 分析使用习惯"
+
+  theme-factory:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/theme-factory/SKILL.md"
+    description: "Apply themes to artifacts"
+    trigger:
+      keywords: [主题, theme, 风格, 配色方案, 样式]
+      negative_keywords: [画图, 代码]
+      priority: 25
+      hint: "使用 theme-factory 应用主题样式"
+
+  brand-guidelines:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/brand-guidelines/SKILL.md"
+    description: "Apply Anthropic brand colors and typography"
+    trigger:
+      keywords: [品牌, brand, Anthropic风格, 品牌色]
+      priority: 25
+      hint: "使用 brand-guidelines 应用品牌规范"
+
+  internal-comms:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/internal-comms/SKILL.md"
+    description: "Write internal communications"
+    trigger:
+      keywords: [内部通讯, 状态报告, status report, 项目更新, newsletter]
+      priority: 25
+      hint: "使用 internal-comms 撰写内部通讯"
+
+  slack-gif-creator:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/slack-gif-creator/SKILL.md"
+    description: "Create animated GIFs for Slack"
+    trigger:
+      keywords: [GIF, gif, Slack, 动图, 表情包]
+      priority: 25
+      hint: "使用 slack-gif-creator 创建 Slack GIF"
+
+  web-artifacts-builder:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/web-artifacts-builder/SKILL.md"
+    description: "Create claude.ai HTML artifacts"
+    trigger:
+      keywords: [artifact, 组件, React组件, shadcn, 交互组件]
+      priority: 25
+      hint: "使用 web-artifacts-builder 创建 Web 组件"
+
+  obsidian-canvas-creator:
+    version: "1.0"
+    type: skill
+    wraps: "~/.claude/skills/obsidian-canvas-creator/SKILL.md"
+    description: "Create Obsidian Canvas files"
+    trigger:
+      keywords: [obsidian, canvas, 画布, obsidian canvas]
+      negative_keywords: [excalidraw]
+      priority: 25
+      hint: "使用 obsidian-canvas-creator 创建 Obsidian 画布"
