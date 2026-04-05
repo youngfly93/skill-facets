@@ -1,0 +1,86 @@
+[
+  {
+    "id": "sci_fig_real_project",
+    "prompt": "请根据 figures 目录和结果数据绘制 SCI 图表",
+    "cwd": "examples/real_project",
+    "expected_top": "sci-fig"
+  },
+  {
+    "id": "deliver_from_plan",
+    "prompt": "请根据 plan.md 把交付包打包发给客户",
+    "cwd": "examples/real_project",
+    "expected_top": "deliver-v4"
+  },
+  {
+    "id": "audit_fix_plan",
+    "prompt": "请对 plan.md 进行审计并修复问题",
+    "cwd": "examples/real_project",
+    "expected_top": "audit-fix"
+  },
+  {
+    "id": "bio_report_word",
+    "prompt": "请生成中文分析报告和 Word 报告",
+    "cwd": "examples/real_project",
+    "expected_top": "bio-report"
+  },
+  {
+    "id": "validate_constraints",
+    "prompt": "请验证这些图是否满足约束",
+    "cwd": "examples/real_project/figures",
+    "expected_top": "validate"
+  },
+  {
+    "id": "ppt_command",
+    "prompt": "帮我制作 PPT 幻灯片汇报结果",
+    "cwd": "examples/blind_test",
+    "expected_top": "ppt"
+  },
+  {
+    "id": "pdf_skill",
+    "prompt": "请处理 PDF 文件并提取内容",
+    "cwd": ".",
+    "expected_top": "pdf"
+  },
+  {
+    "id": "xlsx_skill",
+    "prompt": "帮我处理 xlsx 表格并汇总结果",
+    "cwd": ".",
+    "expected_top": "xlsx"
+  },
+  {
+    "id": "docx_skill",
+    "prompt": "帮我修改 docx 文档格式",
+    "cwd": ".",
+    "expected_top": "docx"
+  },
+  {
+    "id": "bio_roundtable_skill",
+    "prompt": "围绕这个分析结果做圆桌讨论，提出新见解和验证设计",
+    "cwd": "examples/real_project",
+    "expected_top": "bio-roundtable"
+  },
+  {
+    "id": "mermaid_visualizer_skill",
+    "prompt": "把这个流程画成 mermaid 流程图",
+    "cwd": ".",
+    "expected_top": "mermaid-visualizer"
+  },
+  {
+    "id": "frontend_design_skill",
+    "prompt": "请设计一个前端 landing page 界面",
+    "cwd": ".",
+    "expected_top": "frontend-design"
+  },
+  {
+    "id": "mcp_builder_skill",
+    "prompt": "帮我搭一个 MCP server 和 tool server",
+    "cwd": ".",
+    "expected_top": "mcp-builder"
+  },
+  {
+    "id": "no_route_backend_api",
+    "prompt": "请帮我实现一个后端 API 服务和数据库迁移",
+    "cwd": ".",
+    "expect_none": true
+  }
+]

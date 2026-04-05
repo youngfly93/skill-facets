@@ -1,9 +1,0 @@
-Category,Term,Count,PValue,FDR,GeneRatio
-BP,cell division,45,1.2e-08,3.6e-06,45/180
-BP,DNA repair,32,4.5e-07,6.8e-05,32/180
-BP,apoptotic process,28,2.1e-06,0.00021,28/180
-BP,immune response,38,8.3e-06,0.00062,38/180
-CC,nucleus,85,3.2e-09,1.6e-06,85/180
-CC,extracellular exosome,42,1.8e-05,0.0009,42/180
-MF,protein binding,120,5.5e-07,0.00011,120/180
-MF,DNA binding,35,3.3e-05,0.0033,35/180

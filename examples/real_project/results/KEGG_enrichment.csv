@@ -1,6 +1,0 @@
-Pathway,Count,PValue,FDR,GeneRatio
-Cell cycle,22,3.4e-06,0.00017,22/180
-p53 signaling pathway,15,8.9e-05,0.0022,15/180
-PI3K-Akt signaling pathway,28,0.00012,0.002,28/180
-Gastric cancer,18,0.00025,0.0031,18/180
-Pathways in cancer,35,0.00048,0.0048,35/180
